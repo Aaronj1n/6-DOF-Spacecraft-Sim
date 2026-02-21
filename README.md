@@ -79,7 +79,7 @@ $\textbf{M}$ is a vector representing the applied moment. The applied moment can
 ### Spacecraft
 For simplicity, let the spacecraft be a solid box with dimensions 20cm x 20cm x 30cm (a.k.a a 12U cubesat). Assuming that each 10cm cube in a cubesat is 1kg, $\mathrm{mass} = 12kg$
 
-![alt text](<Screenshot 2026-02-20 at 6.27.38 PM.png>)
+![12UCubesat](images/12UCubeSat.png)
 
 The above image describes the body fixed frame, centered at the center of mass, which is the geometric center for simplicity's sake. 
 
