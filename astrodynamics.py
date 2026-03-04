@@ -23,19 +23,19 @@ class circular_orbit:
     #                       [0, 1, 0],
      #                      [-np.cos(inclination_angle), 0, np.cos(inclination_angle)])
        ##     return dcm
-    def ECI_3d_position(t):
+    def ECI_3d_position(self,t):
             #perifocal_coords = perifocal_2d_motion(t)
            # dcm = perifocal_to_ECI(self.inclination_angle)
             #return np.matmul(dcm, perifocal_coords)
-            x = np.cos(self.inclination_angle) * self.orbit_radius*np.cos((self.w)*t)
+            x = np.cos(self.inclination_angle)* self.orbit_radius*np.cos((self.w)*t)
             y = self.orbit_radius*np.sin((self.w)*t)
             z = -np.cos(self.inclination_angle) * self.orbit_radius*np.cos((self.w)*t)
-            return np.array([x,y,z])
-    def ECI_3d_velocity(t):
+            return np.array([[x],[y],[z]])
+    def ECI_3d_velocity(self,t):
             xdot = -np.cos(self.inclination_angle)*self.orbit_radius*self.w*np.sin((self.w)*t)
             ydot = self.orbit_radius * self.w * np.cos(self.w * t)
             zdot = np.cos(self.inclination_angle)*self.orbit_radius*self.w*np.sin((self.w)*t)
-            return np.array([xdot, ydot, zdot])
+            return np.array([[xdot], [ydot], [zdot]])
 
 
 

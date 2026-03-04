@@ -104,9 +104,99 @@ $$
 0 & 0 & .08
 \end{bmatrix} \mathrm{kg*m^{2}}
 $$
+
+Assuming that a 3U cubesat has a magnetic dipole moment of $9 \times 10^{-3} A \cdot m^2 $ according to tests at NASA Goddard, we may assume that our 12U cubesat has a magnetic dipole moment of $ 3.6 \times 10^{-2} A \cdot m^2 $ 
+Let's assume the magnetic dipole moment acts in the body x-direction
+
+$$
+\mathbf{m^b} = \begin{bmatrix}
+3.6 \times 10^{-2} \\
+0 \\
+0
+
+
+\end{bmatrix} \mathrm{A \cdot m^2}
+$$
+
 ### Attitude Determination
 ### Sensors
 ### Actuators
+The spacecraft will use three reaction wheels that are aligned with the principal body axes in order to control its attitude. 
+
+The chosen reaction wheels are the RW400's by AAC Clyde Space:
+
+![rw400](images/rw400.png)
+
+The equation which relates the reaction wheel torques to spacecraft motion is outlined in Equation 4.140 *Analytical Mechanics of Space Systems* by Schaub and Junkins.
+
+![S&J_eq_4.140](images/S&J_eq_4.140.png)
+
+where 
+$$
+\mathbf{h_s} = \begin{pmatrix} 
+J_{s_1} ({\omega}_{s_1} + {\Omega}_1) \\
+J_{s_2} ({\omega}_{s_2} + {\Omega}_2) \\
+J_{s_3} ({\omega}_{s_3} + {\Omega}_3) 
+\end{pmatrix}
+$$
+
+$$
+\mathbf{u_s} = \begin{pmatrix} 
+\text{torque at RW no. 1} \\
+\text{torque at RW no. 2} \\
+\text{torque at RW no. 3} 
+\end{pmatrix}
+$$
+
+$[I_{RW}]$ = moment of inertia of entire spacecraft plus the inertia components of the reaction wheels (except about the spin axis)
+
+$\mathbf{{\omega}}$ = the angular velocity of the spacecraft relative to the inertial frame
+
+$\mathbf{\dot{\omega}}$ = the angular acceleration of the spacecraft relative to the inertial frame
+
+
+${\omega}_{s1}$ = the component of ${\omega}$ in the direction of reaction wheel #1's spin axis
+
+$J_{s1}$ = moment of inertia of reaction wheel #1 about its spin axis
+
+
+${\Omega}_1$ = the spin rate of the reaction wheel #1 about its housing
+
+$L$ = external moments acting on the spacecraft
+
+
+### Disturbances:
+
+The two environmental disturbances that were modeled in this simulation include the gravity gradient torque and the torque due to Earth's magnetic field.
+
+The equation for the gravity gradient torque comes from S&J 4.152.
+$$
+L_G = \frac{3GM_e}{R_c^5}\mathbf{R_c} \times [I]\mathbf{R_C}
+$$
+
+The equation for the magnetic field torque comes from simplifying Earth's magnetic field is a dipole magnet.
+
+$$
+\mathbf{B^n} = B_0(\frac{R_{eq}}{||r||})^3 \begin{bmatrix}
+cos(\lambda)\\
+0\\
+2sin(\lambda)\\
+\end{bmatrix}
+$$
+Where $\lambda$ is the lattitude, $B_0$ is the magnetic field magnitude at the equator, and $R_{eq}$ is the equatorial radius of the Earth.
+
+The above equation gives the magnetic field in North-East-Down (NED) Coordinates. We need to convert to body coordinates using DCM's in order to work with the torque equation:
+
+$$
+\mathbf{M_{torque}^{b}} = \mathbf{m^b} \times \mathbf{B^b}
+$$
+
+where $\mathbf{m^b}$ is the magnetic dipole moment of the spacecraft in body coordinates and $\mathbf{B^b}$ is the magnetic field of the Earth in body coordinates. 
+
+
 ### Future additions
 
+
+### References:
+Schaub and Junkins Analytical Mechanics of Space Systems
 
