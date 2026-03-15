@@ -119,7 +119,35 @@ $$
 $$
 
 ### Attitude Determination
+The TRIAD method will be employed to determine the attitude of the spacecraft. The attitude, in this context, is the DCM from the inertial reference frame to the body fixed frame. 
+
+Our spacecraft will use magnetometers and sun sensors in order to carry out the TRIAD attitude determination algorithm.
+
+
 ### Sensors
+#### Magnetometer
+The magnetometer chosen was the CubeSpace Compact Magnetometer. The noise standard deviation is reported to be 40 nT
+
+#### Sun Sensor
+The sun sensor chosen was the CubeSpace Fine Sun Sensor. The noise standard deviation for the azimuth and elevation angles of the sun direction vector is .1 degrees. If we're in a LEO orbit with a period of 1-2 hours, it's safe to assume that the inertial sun direction remains constant throughout the duration of the simulation.
+
+For simplicity, let's assume the date is March 21st, and the sun is in the direction of the vernal equinox, which is the *x*  direction of the ECI frame
+
+We will use 6 sun sensors -- one on each side of the cubesat -- to ensure we can lock onto the sun in any spacecraft orientation
+
+The manufacturer provides a 0.2 degree accuracy for the sun sensor in the roll and elevation axes in the sensor coordinate frame, but to simplify calculations let's assume the accuracy is 0.2 degrees about all of the spacecraft body fixed axes *x, y, and z*
+
+[datasheets](images/CubeSpace_Datasheets.pdf)
+
+#### Inertial Measurement Unit (IMU)
+The IMU chosen for this project is the Kernel-100 from Inertial Labs. 
+[datasheets](images/Kernel-100_Datasheet.pdf)
+
+
+
+
+
+
 ### Actuators
 The spacecraft will use three reaction wheels that are aligned with the principal body axes in order to control its attitude. 
 
@@ -198,5 +226,8 @@ where $\mathbf{m^b}$ is the magnetic dipole moment of the spacecraft in body coo
 
 
 ### References:
-Schaub and Junkins Analytical Mechanics of Space Systems
+Schaub and Junkins Analytical Mechanics of Space Systems 
+\
+adcs-simulation by Gavin Martin https://github.com/gavincmartin/adcs-simulation
+
 

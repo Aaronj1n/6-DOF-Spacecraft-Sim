@@ -26,22 +26,12 @@ def disturbances(I, #principal inertia tensor of spacecraft
                  sc_dipole_moment, #comes from spacecraft class
                  mu, #comes from circular orbit class
                  ECI_position, #comes from circular orbit class
-                 B_0, #magnetic field at the equator
-                 R_eq #Earth's equatorial radius
+                 B_i #magnetic field in inertial coordinates, comes from astrodynamics module
                  ):
     Rc = DCM_I2B @ ECI_position               #vector from center of Earth to spacecraft center, given in body coordinates
     gravity_grad_torque =((3*mu)/(np.linalg.norm(Rc))**5)*np.cross(Rc, (I @ Rc)) 
-    #next solve for magnetic field torque
-    latitude = np.arcsin(ECI_position([2])/np.linalg.norm(ECI_position))
-    B_NED = B_0 * ((R_eq/np.linalg.norm(ECI_position))**3)*np.array([[np.cos(latitude)], [0], [2*np.sin(latitude)]])
-    #calculate the DCM from NED coordinates to Earth Centered Inertial (ECI)
-    n_z_i = -(ECI_position/np.linalg.norm(ECI_position))
-    n_y_i = np.cross(n_z_i, np.array([0], [0], [1])) / np.linalg.norm(np.cross(n_z_i, np.array([0], [0], [1])))
-    n_x_i = np.cross(n_y_i, n_z_i)
-    dcm_i2ned = np.array([[n_z_i.T], [n_y_i.T], [n_x_i.T]])
-    dcm_ned2i = dcm_i2ned.T
-    dcm_ned2b = DCM_I2B @ dcm_ned2i
-    B_B = dcm_ned2b @ B_NED
+    
+    B_B = DCM_I2B @ B_i
     mag_torque = np.cross(sc_dipole_moment, B_B) 
     #total disturbance torque is the sum of the gravity gradient torque and magnetic field torque 
     total_torque = gravity_grad_torque  + mag_torque

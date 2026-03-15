@@ -12,18 +12,19 @@ class spacecraft:
         self.r = r
         self.v = v 
         self.b = b
-    
+
 
 class reaction_wheel_system_basic:    #basic meaning there are three RW's, each aligned with a 
                                       #...body principal axis
-    def __init__(self, wheel_diameter, wheel_height, wheel_mass, max_torque
+    def __init__(self, wheel_diameter, wheel_height, wheel_mass, max_torque, spin_speed = np.array([[0],[0],[0]]), u= np.array([[0],[0],[0]])
                   ):
         self.wheel_diameter = wheel_diameter
         self.wheel_radius = wheel_diameter / 2
         self.wheel_height = wheel_height
         self.wheel_mass = wheel_mass
         self.max_torque = max_torque
-
+        self.spin_speed = spin_speed
+        self.u = u
     def principal_moments(self): #calculates moment of inertia of reaction wheel about 
                                  #...reaction wheel coordinate system 
         tensor = np.zeros(3,3)
@@ -61,12 +62,11 @@ class reaction_wheel_system_basic:    #basic meaning there are three RW's, each 
         return I_RW
     def calculate_wheel_acceleration(self, #function to return a 3x1 vector of the reaction wheel spin accelerations
                                       angular_acceleration_body, #angular acceleration of the spacecraft in body coordinates, 3x1 vector
-                                      RW_motor_torques, #torques inputted as a 3x1 vector 
                                       J_RW #the principal inertia tensor for each reaction wheel in reaction wheel frame coordinates
                                        ):
         J_s = J_RW([2,2])
         g_s_tensor = np.array([[0,1,0], [1,0,0], [0,0,1]])
-        wheel_accel_vector = (RW_motor_torques/(J_s)) - (g_s_tensor @ angular_acceleration_body)
+        wheel_accel_vector = (self.u/(J_s)) - (g_s_tensor @ angular_acceleration_body)
         return wheel_accel_vector
     def calculate_hs_vector(self,  #returns a 3x1 column vector
                            J_RW, 
