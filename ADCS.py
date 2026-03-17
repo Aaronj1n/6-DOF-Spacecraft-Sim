@@ -67,21 +67,30 @@ def simulate_IMU(bias, #deg/s
     measured_angular_velocity = true_angular_velocity + bias + gyro_noise
     return measured_angular_velocity
 
-def PD_Control_RW(Kp, Kd, DCM_estimate, DCM_nominal, ang_vel_estimate, ang_vel_nominal, principal_inertia ): #let this function output the required reaction wheel torques 'u'
+def simulate_imperfect_RW(u, torque_error):
+    rw1_error = np.random.normal(0, torque_error)
+    rw2_error = np.random.normal(0, torque_error)
+    rw3_error = np.random.normal(0, torque_error)
+    error = np.array([[rw1_error], [rw2_error], [rw3_error]])
+    imperfect_u = u + error
+    return imperfect_u
+
+
+def PD_Control_RW(Kp, Kd, DCM_estimate, DCM_nominal, ang_vel_estimate, ang_vel_nominal, RW, I_s): #let this function output the required reaction wheel torques 'u'
     #algorithm obtained from section 6.2 of Gavin Martin ADCS Project
     Kp = Kp * np.eye(3)
     Kd = Kd * np.eye(3)
     error_DCM = DCM_estimate @ DCM_nominal.T
-    error_vector = -0.5 * np.array([[error_DCM[2, 1]-error_DCM[1,2]],[error_DCM[0,2]-error_DCM[2,0]], [error_DCM[1,0]-error_DCM[0,1]]])
+    error_vector = 0.5 * np.array([[error_DCM[2, 1]-error_DCM[1,2]],[error_DCM[0,2]-error_DCM[2,0]], [error_DCM[1,0]-error_DCM[0,1]]])
     error_ang_vel = ang_vel_estimate - ang_vel_nominal
     error_vector_dot = -np.cross(ang_vel_estimate, error_vector) + error_ang_vel
-    u = -Kd*error_vector_dot - Kp*error_vector
-    applied_moment = principal_inertia @ u #everything in body frame
-    #rw1, rw2, rw3 are lined up with the y,x, and z axes respectively. need to rearrange the applied moment vector to match up with rw's
-    rw2 = -applied_moment[0] 
-    rw1 = -applied_moment[1] 
-    rw3 = -applied_moment[2] 
-    return np.array([[rw1],[rw2],[rw3]])
+    alpha = -Kd*error_vector_dot - Kp*error_vector #alpha represents the angular acceleration that the controller would like to enact
+    J_RW = RW.principal_moments()
+    I_RW = RW.calculate_I_RW(I_s, J_RW)
+    hs_vector = RW.calculate_hs_vector(J_RW, ang_vel_estimate)
+    u = RW.calculate_u(alpha, I_RW, ang_vel_estimate, hs_vector)
+    return u
+    
 
 
 

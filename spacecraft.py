@@ -16,7 +16,8 @@ class spacecraft:
 
 class reaction_wheel_system_basic:    #basic meaning there are three RW's, each aligned with a 
                                       #...body principal axis
-    def __init__(self, wheel_diameter, wheel_height, wheel_mass, max_torque, spin_speed = np.array([[0],[0],[0]]), u= np.array([[0],[0],[0]])
+    def __init__(self, wheel_diameter, wheel_height, wheel_mass, max_torque, spin_speed = np.array([[0],[0],[0]]),
+                  u= np.array([[0],[0],[0]]), hs = np.array([[0],[0],[0]])
                   ):
         self.wheel_diameter = wheel_diameter
         self.wheel_radius = wheel_diameter / 2
@@ -25,12 +26,14 @@ class reaction_wheel_system_basic:    #basic meaning there are three RW's, each 
         self.max_torque = max_torque
         self.spin_speed = spin_speed
         self.u = u
+        self.hs= hs
+
     def principal_moments(self): #calculates moment of inertia of reaction wheel about 
                                  #...reaction wheel coordinate system 
         tensor = np.zeros(3,3)
-        tensor([0,0]) = ((1/12) *  self.wheel_mass * (self.wheel_height)**2) + ((1/4) *  self.wheel_mass * (self.wheel_radius)**2)
-        tensor([1,1]) = ((1/12) *  self.wheel_mass * (self.wheel_height)**2) + ((1/4) *  self.wheel_mass * (self.wheel_radius)**2)
-        tensor ([2,2]) = (1/2) * self.wheel_mass * (self.wheel_radius)**2 
+        tensor[0,0] = ((1/12) *  self.wheel_mass * (self.wheel_height)**2) + ((1/4) *  self.wheel_mass * (self.wheel_radius)**2)
+        tensor[1,1] = ((1/12) *  self.wheel_mass * (self.wheel_height)**2) + ((1/4) *  self.wheel_mass * (self.wheel_radius)**2)
+        tensor [2,2] = (1/2) * self.wheel_mass * (self.wheel_radius)**2 
         return tensor #transverse, gimbal, spin axes 
     def calculate_I_RW(self, #calculates the spacecraft + RW moment of inertia tensor [I_RW] described in S&J 4.140
                        I_s, #spacecraft moment of inertia about body fixed frame
@@ -47,7 +50,7 @@ class reaction_wheel_system_basic:    #basic meaning there are three RW's, each 
         bf_inertia_rw1 = (J_t * g_t_1 @ g_t_1_tranpose) + (J_g * g_g_1 @ g_g_1_tranpose)
         #grab body frame inertia tensor minus spin axis for reaction wheel #2:
         g_t_2 = np.array([[0],[1],[0]])
-        g_t_2_tranpose = np.tranpose(g_t_2)
+        g_t_2_tranpose = np.transpose(g_t_2)
         g_g_2 = np.array([[0],[0],[1]])
         g_g_2_tranpose = np.transpose(g_g_2)
         bf_inertia_rw2 = (J_t * g_t_2 @ g_t_2_tranpose) + (J_g * g_g_2 @ g_g_2_tranpose)
@@ -70,7 +73,6 @@ class reaction_wheel_system_basic:    #basic meaning there are three RW's, each 
         return wheel_accel_vector
     def calculate_hs_vector(self,  #returns a 3x1 column vector
                            J_RW, 
-                           wheel_velocities, #input a 3x1 vector of the RW spin angular velocities
                            angular_velocity_body #angular velocity of the spacecraft in body coordinates, 3x1 vector
                            ):
         J_s = J_RW([2,2]) # the same for each reaction wheel
@@ -80,8 +82,20 @@ class reaction_wheel_system_basic:    #basic meaning there are three RW's, each 
         w_s1 = np.dot(angular_velocity_body, s1)   #component of spacecraft angular velocity in the RW #1 spin direction
         w_s2 = np.dot(angular_velocity_body, s2)  #component of spacecraft angular velocity in the RW #2 spin direction
         w_s3 = np.dot(angular_velocity_body, s3) #component of spacecraft angular velocity in the RW #3 spin direction
-        h_vector = J_s * (np.array([[w_s1],[w_s2], [w_s3]]) + wheel_velocities)
+        h_vector = J_s * (np.array([[w_s1],[w_s2], [w_s3]]) + self.spin_speed)
         return h_vector
-
+    def calculate_u(self, desired_ang_accel, I_RW, estimated_angular_vel, hs_vector):
+        desired_u =  np.cross(-estimated_angular_vel, I_RW @ estimated_angular_vel) - np.cross(estimated_angular_vel, hs_vector) - (I_RW @ desired_ang_accel)
+        empty_list = []
+        for u_c in desired_u:
+            if u_c < self.max_torque:
+                pass
+            else:
+                u_c = self.max_torque
+            empty_list.append(u_c)
+        u = np.array(empty_list).reshape(-1,1)
+        return u 
+            
+            
 
 

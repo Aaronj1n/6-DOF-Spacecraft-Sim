@@ -97,6 +97,7 @@ def quaternion_multiply(Q0,Q1):
     # Return a 4 element array containing the final quaternion (q02,q12,q22,q32) 
     return final_quaternion
 
-
+def cross(a, b): #crosses two column vectors
+    return np.cross(a.flatten(), b.flatten()).reshape(-1, 1)
 #please give dcm as a 4x4 np array
 
