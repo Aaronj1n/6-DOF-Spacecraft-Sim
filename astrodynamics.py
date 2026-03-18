@@ -42,7 +42,7 @@ class circular_orbit:
             zdot = np.cos(self.inclination_angle)*self.orbit_radius*self.w*np.sin((self.w)*t)
             return np.array([[xdot], [ydot], [zdot]])
     def calculate_magfield(self, ECI_position): #returns the magnetic field in inertial frame
-      latitude = np.arcsin(ECI_position([2])/np.linalg.norm(ECI_position))
+      latitude = np.arcsin(ECI_position[2,0]/np.linalg.norm(ECI_position))
       B_NED = self.B_0 * ((self.planet_radius/np.linalg.norm(ECI_position))**3)*np.array([[np.cos(latitude)], [0], [2*np.sin(latitude)]])
       #calculate the DCM from North-East-Down (NED) coordinates to Earth Centered Inertial (ECI)
       n_z_i = -(ECI_position/np.linalg.norm(ECI_position))

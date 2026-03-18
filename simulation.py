@@ -33,7 +33,7 @@ def get_nominal_body(t):
     nominal_initial_y = -initial_norm_ang_velocity
     nominal_initial_x = math_functions.cross(nominal_initial_y, nominal_initial_z)
     #create a DCM that describes the transformation from the inertial to the initial nominal body frame
-    dcm_initial_nominal = np.array([[nominal_initial_x.T], [nominal_initial_y.T], [nominal_initial_z.T]])
+    dcm_initial_nominal = np.vstack([nominal_initial_x.T, nominal_initial_y.T, nominal_initial_z.T])
     #to remain pointing at the planet, the body frame of the spacecraft
     #...is rotating with the same angular velocity as the orbit. we can
     #...construct a dcm that takes into account this rotation
@@ -79,7 +79,7 @@ axis = np.array([np.random.normal(0, 10), np.random.normal(0,10), np.random.norm
 axis_n = axis / np.linalg.norm(axis)
 random_angle = np.random.normal(0, 100) * (np.pi/180) #random angle where 100 degrees is the standard deviation
 random_rotation_quaternion = np.array([np.cos(random_angle/2), axis_n[0]*np.sin(random_angle/2), axis_n[1]*np.sin(random_angle/2), axis_n[2]*np.sin(random_angle/2)])
-initial_position_quat = math_functions.quaternion_multiply(random_rotation_quaternion, get_nominal_body(0))
+initial_position_quat = math_functions.quaternion_multiply(random_rotation_quaternion, math_functions.dcm_to_q(get_nominal_body(0)))
 
 #step 2: put the spacecraft in a random angular velocity at time = 0s
 initial_angular_velocity = np.array([[np.random.normal(0, (15 * np.pi/180))],[np.random.normal(0, (15 * np.pi/180))],[np.random.normal(0, (15 * np.pi/180))]])

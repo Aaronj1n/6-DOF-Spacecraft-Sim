@@ -39,10 +39,10 @@ def sensor_noise_DCM(accuracy): #converting rotational accuracy into a noise mat
     y_error_angle = np.random.normal(0, accuracy)
     z_error_angle = np.random.normal(0, accuracy)
     rotation_angle = np.sqrt(np.square(x_error_angle) + np.square(y_error_angle)+np.square(z_error_angle))
-    unit_rotation_axis = np.linalg.norm(np.array([[x_error_angle], [y_error_angle], [z_error_angle]]))
+    unit_rotation_axis = np.array([[x_error_angle], [y_error_angle], [z_error_angle]]) / rotation_angle
     e = create_skew(unit_rotation_axis)
     #use Rodrigues' rotation formula to create the rotation matrix after obtaining the rotation angle and the unit rotation axis
-    Error_Rotation_Matrix = np.eye(3) + (np.sin(rotation_angle) @ e) + ((1-np.cos(rotation_angle)) @ e @ e)
+    Error_Rotation_Matrix = np.eye(3) + (np.sin(rotation_angle) * e) + ((1-np.cos(rotation_angle)) * e @ e)
     return Error_Rotation_Matrix
 
 

@@ -1,16 +1,16 @@
 import numpy as np 
 
 def q_to_dcm(quaternion):
-#please give quaternion as a 4x1 column np array
+#please give quaternion as a 1x4 row np array
     beta_0 = quaternion[0] #the scalar part 
     beta_1 = quaternion[1] #i vector
     beta_2 = quaternion[2] #j vector
     beta_3 = quaternion[3] #k vector
-    dcm = np.array[[(np.square(beta_0)+np.square(beta_1)-np.square(beta_2)-np.square(beta_3)), 
+    dcm = np.array([[(np.square(beta_0)+np.square(beta_1)-np.square(beta_2)-np.square(beta_3)), 
                      2*(beta_1*beta_2 + beta_0*beta_3), 2*(beta_1*beta_3-beta_0*beta_2)], 
                     [2*(beta_1*beta_2-beta_0*beta_3), np.square(beta_0)-np.square(beta_1)+np.square(beta_2)-np.square(beta_3),
                      2*(beta_2*beta_3+beta_0*beta_1)], [2*(beta_1*beta_3+beta_0*beta_2), 2*(beta_2*beta_3-beta_0*beta_1),
-                                                        np.square(beta_0)-np.square(beta_1)-np.square(beta_2)+np.square(beta_3)]]
+                                                        np.square(beta_0)-np.square(beta_1)-np.square(beta_2)+np.square(beta_3)]])
     return dcm
 def dcm_to_q(dcm):
     #uses Shepperd's Selection Algorithm (https://motoq.github.io/doc/tnotes/dcmq.pdf)
@@ -53,9 +53,9 @@ def dcm_to_q(dcm):
     return np.array([beta_0, beta_1, beta_2, beta_3]) #quaternion
 
 def create_skew(vector): #vector is 3x1 column np array
-    x = vector[0]
-    y = vector[1]
-    z = vector[2]
+    x = vector[0,0]
+    y = vector[1,0]
+    z = vector[2,0]
     skew = np.array([[0, -z, y], [z,0,-x], [-y, x, 0]])
     return skew
 
