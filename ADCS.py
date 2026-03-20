@@ -1,5 +1,5 @@
 import numpy as np
-from math_functions import create_skew
+from math_functions import create_skew, cross
 
 def TRIAD_AD( #Attitude Determination via the TRIAD Method
               mag_i, #Earth's magnetic field in inertial coordinates, calculated by astrodynamics
@@ -9,12 +9,12 @@ def TRIAD_AD( #Attitude Determination via the TRIAD Method
               ): 
     #create triad in the body frame
     t1_b = sun_b/np.linalg.norm(sun_b)
-    t2_b = np.cross(sun_b, mag_b)/np.linalg.norm(np.cross(sun_b, mag_b))
-    t3_b = np.cross(t1_b, t2_b)
+    t2_b = cross(sun_b, mag_b)/np.linalg.norm(cross(sun_b, mag_b))
+    t3_b = cross(t1_b, t2_b)
     #create triad in the inertial frame
     t1_i = sun_i/np.linalg.norm(sun_i)
-    t2_i = np.cross(sun_i, mag_i)/np.linalg.norm(np.cross(sun_i, mag_i))
-    t3_i = np.cross(t1_i, t2_i)
+    t2_i = cross(sun_i, mag_i)/np.linalg.norm(cross(sun_i, mag_i))
+    t3_i = cross(t1_i, t2_i)
     DCM_BT = np.hstack((t1_b, t2_b, t3_b))
     DCM_IT = np.hstack((t1_i, t2_i, t3_i))
     DCM_TI = DCM_IT.T
@@ -83,8 +83,8 @@ def PD_Control_RW(Kp, Kd, DCM_estimate, DCM_nominal, ang_vel_estimate, ang_vel_n
     error_DCM = DCM_estimate @ DCM_nominal.T
     error_vector = 0.5 * np.array([[error_DCM[2, 1]-error_DCM[1,2]],[error_DCM[0,2]-error_DCM[2,0]], [error_DCM[1,0]-error_DCM[0,1]]])
     error_ang_vel = ang_vel_estimate - ang_vel_nominal
-    error_vector_dot = -np.cross(ang_vel_estimate, error_vector) + error_ang_vel
-    alpha = -Kd*error_vector_dot - Kp*error_vector #alpha represents the angular acceleration that the controller would like to enact
+    error_vector_dot = -cross(ang_vel_estimate, error_vector) + error_ang_vel
+    alpha = -Kd @ error_vector_dot - Kp @ error_vector #alpha represents the angular acceleration that the controller would like to enact
     J_RW = RW.principal_moments()
     I_RW = RW.calculate_I_RW(I_s, J_RW)
     hs_vector = RW.calculate_hs_vector(J_RW, ang_vel_estimate)

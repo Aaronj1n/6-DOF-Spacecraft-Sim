@@ -1,5 +1,5 @@
 import numpy as np
-
+from math_functions import cross
 class circular_orbit:
     def __init__(self, altitude, inclination_angle, planet_radius, planet_mu, 
                  B_0, #magnetic field at equator
@@ -46,9 +46,9 @@ class circular_orbit:
       B_NED = self.B_0 * ((self.planet_radius/np.linalg.norm(ECI_position))**3)*np.array([[np.cos(latitude)], [0], [2*np.sin(latitude)]])
       #calculate the DCM from North-East-Down (NED) coordinates to Earth Centered Inertial (ECI)
       n_z_i = -(ECI_position/np.linalg.norm(ECI_position))
-      n_y_i = np.cross(n_z_i, np.array([0], [0], [1])) / np.linalg.norm(np.cross(n_z_i, np.array([0], [0], [1])))
-      n_x_i = np.cross(n_y_i, n_z_i)
-      dcm_i2ned = np.array([[n_z_i.T], [n_y_i.T], [n_x_i.T]])
+      n_y_i = cross(n_z_i, np.array([[0],[0],[1]])) / np.linalg.norm(cross(n_z_i, np.array([[0], [0], [1]])))
+      n_x_i = cross(n_y_i, n_z_i)
+      dcm_i2ned = np.vstack([n_z_i.T, n_y_i.T, n_x_i.T])
       dcm_ned2i = dcm_i2ned.T
       B_i = dcm_ned2i @ B_NED
       return B_i

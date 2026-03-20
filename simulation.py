@@ -103,7 +103,7 @@ for r in range(N): #no state estimation
     measured_angular_velocity = ADCS.simulate_IMU(imu_bias, 6.33E-3,t_step, true_current_angular_velocity)
     #step 4: create control signal (a.k.a reaction wheel torques 'u') 
     u = ADCS.PD_Control_RW(Kp=.2, Kd = .01, DCM_estimate=measured_current_position_DCM, DCM_nominal=nominal_body_DCM, 
-                           ang_vel_estimate=measured_angular_velocity, ang_vel_nominal=nominal_ang_vel, RW=rw, principal_inertia=my_spacecraft.I )
+                           ang_vel_estimate=measured_angular_velocity, ang_vel_nominal=nominal_ang_vel, RW=rw, I_s=my_spacecraft.I )
     imperfect_u = ADCS.simulate_imperfect_RW(u, torque_error= .04E-3)
     #step 5: create disturbances
     disturbances = dynamics.disturbances(I=my_spacecraft.I, DCM_I2B=true_current_position_DCM, sc_dipole_moment= my_spacecraft.b, 
@@ -112,7 +112,7 @@ for r in range(N): #no state estimation
     #step 6: obtain the true angular acceleration due to environment + rw actuators
     
     rw.hs = rw.calculate_hs_vector(J_RW=rw.principal_moments(),angular_velocity_body=true_current_angular_velocity)
-    I_RW = rw.calculate_I_RW(I_s=my_spacecraft.I, J_rw= rw.principal_moments())
+    I_RW = rw.calculate_I_RW(I_s=my_spacecraft.I, J_RW= rw.principal_moments())
     angular_acceleration = dynamics.eulers_eq_of_rotation_RW(I_RW=I_RW, angular_velocity= true_current_angular_velocity, hs = rw.hs, 
                                                              u=imperfect_u, l=disturbances)
     

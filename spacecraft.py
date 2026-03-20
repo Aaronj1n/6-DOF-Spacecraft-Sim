@@ -1,4 +1,5 @@
 import numpy as np 
+from math_functions import dot, cross
 
 class spacecraft:
     def __init__(self, controller, q, w, r, v, 
@@ -30,7 +31,7 @@ class reaction_wheel_system_basic:    #basic meaning there are three RW's, each 
 
     def principal_moments(self): #calculates moment of inertia of reaction wheel about 
                                  #...reaction wheel coordinate system 
-        tensor = np.zeros(3,3)
+        tensor = np.zeros((3,3))
         tensor[0,0] = ((1/12) *  self.wheel_mass * (self.wheel_height)**2) + ((1/4) *  self.wheel_mass * (self.wheel_radius)**2)
         tensor[1,1] = ((1/12) *  self.wheel_mass * (self.wheel_height)**2) + ((1/4) *  self.wheel_mass * (self.wheel_radius)**2)
         tensor [2,2] = (1/2) * self.wheel_mass * (self.wheel_radius)**2 
@@ -40,8 +41,8 @@ class reaction_wheel_system_basic:    #basic meaning there are three RW's, each 
                        J_RW #principal inertia tensor for RW about reaction wheel frame
                        ): 
         #get the reaction wheel principal moments for transverse and gimbal axes:
-        J_t = J_RW([0,0])
-        J_g = J_RW([1,1])
+        J_t = J_RW[0,0]
+        J_g = J_RW[1,1]
         #grab body frame inertia tensor minus spin axis for reaction wheel #1:
         g_t_1 = np.array([[1],[0],[0]])
         g_t_1_tranpose = np.transpose(g_t_1)
@@ -67,7 +68,7 @@ class reaction_wheel_system_basic:    #basic meaning there are three RW's, each 
                                       angular_acceleration_body, #angular acceleration of the spacecraft in body coordinates, 3x1 vector
                                       J_RW #the principal inertia tensor for each reaction wheel in reaction wheel frame coordinates
                                        ):
-        J_s = J_RW([2,2])
+        J_s = J_RW[2,2]
         g_s_tensor = np.array([[0,1,0], [1,0,0], [0,0,1]])
         wheel_accel_vector = (self.u/(J_s)) - (g_s_tensor @ angular_acceleration_body)
         return wheel_accel_vector
@@ -75,21 +76,23 @@ class reaction_wheel_system_basic:    #basic meaning there are three RW's, each 
                            J_RW, 
                            angular_velocity_body #angular velocity of the spacecraft in body coordinates, 3x1 vector
                            ):
-        J_s = J_RW([2,2]) # the same for each reaction wheel
+        J_s = J_RW[2,2] # the same for each reaction wheel
         s1 = np.array([[0],[1],[0]])  #RW #1 spin direction, written in body coordinates 
         s2 = np.array([[1],[0],[0]])
         s3= np.array([[0],[0],[1]])
-        w_s1 = np.dot(angular_velocity_body, s1)   #component of spacecraft angular velocity in the RW #1 spin direction
-        w_s2 = np.dot(angular_velocity_body, s2)  #component of spacecraft angular velocity in the RW #2 spin direction
-        w_s3 = np.dot(angular_velocity_body, s3) #component of spacecraft angular velocity in the RW #3 spin direction
+        w_s1 = dot(angular_velocity_body, s1)   #component of spacecraft angular velocity in the RW #1 spin direction
+        w_s2 = dot(angular_velocity_body, s2)  #component of spacecraft angular velocity in the RW #2 spin direction
+        w_s3 = dot(angular_velocity_body, s3) #component of spacecraft angular velocity in the RW #3 spin direction
         h_vector = J_s * (np.array([[w_s1],[w_s2], [w_s3]]) + self.spin_speed)
         return h_vector
     def calculate_u(self, desired_ang_accel, I_RW, estimated_angular_vel, hs_vector):
-        desired_u =  np.cross(-estimated_angular_vel, I_RW @ estimated_angular_vel) - np.cross(estimated_angular_vel, hs_vector) - (I_RW @ desired_ang_accel)
+        desired_u =  cross(-estimated_angular_vel, (I_RW @ estimated_angular_vel)) - cross(estimated_angular_vel, hs_vector) - (I_RW @ desired_ang_accel)
         empty_list = []
+        
+        print('DESIRED U', desired_u)
         for u_c in desired_u:
-            if u_c < self.max_torque:
-                pass
+            if u_c.item() < self.max_torque:
+                u_c = u_c.item()
             else:
                 u_c = self.max_torque
             empty_list.append(u_c)

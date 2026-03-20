@@ -99,5 +99,7 @@ def quaternion_multiply(Q0,Q1):
 
 def cross(a, b): #crosses two column vectors
     return np.cross(a.flatten(), b.flatten()).reshape(-1, 1)
+def dot(a,b): #dots two column vectors
+    return np.dot(a.flatten(), b.flatten())
 #please give dcm as a 4x4 np array
 
