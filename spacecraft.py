@@ -89,7 +89,7 @@ class reaction_wheel_system_basic:    #basic meaning there are three RW's, each 
         desired_u =  cross(-estimated_angular_vel, (I_RW @ estimated_angular_vel)) - cross(estimated_angular_vel, hs_vector) - (I_RW @ desired_ang_accel)
         empty_list = []
         
-        print('DESIRED U', desired_u)
+        
         for u_c in desired_u:
             if u_c.item() < self.max_torque:
                 u_c = u_c.item()

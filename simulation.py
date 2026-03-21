@@ -126,7 +126,9 @@ for r in range(N): #no state estimation
 
     #step 8: propagate the attitude using the angular velocity
     quat_dot = dynamics.kinematic_diffeq_quaternion(current_quat, true_current_angular_velocity)
-    future_quat = current_quat + quat_dot * t_step
+    future_quat = (current_quat.reshape((-1,1)) + quat_dot * t_step).flatten()
+    future_quat = future_quat/np.linalg.norm(future_quat)
+    print('future quat', future_quat)
     
     #step 9: update data
     quat_data[r,:] = current_quat
@@ -137,7 +139,7 @@ for r in range(N): #no state estimation
     current_quat = future_quat
     true_current_position_DCM = math_functions.q_to_dcm(current_quat)
     true_current_angular_velocity = true_future_angular_velocity
-
+   
 
 
 #give all the data arrays a time column for readability
