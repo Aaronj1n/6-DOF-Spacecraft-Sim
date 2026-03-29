@@ -1,9 +1,13 @@
 import numpy as np
+import matplotlib.pyplot as plt
 import dynamics 
 import math_functions
 from astrodynamics import circular_orbit
 from spacecraft import spacecraft, reaction_wheel_system_basic
 import ADCS
+import math
+from functools import partial
+from visualization import animate
 
 #create the circular orbit
 earth_leo_orbit = circular_orbit(altitude = 1500e3, inclination_angle= (45*(np.pi / 180)),
@@ -12,15 +16,16 @@ earth_leo_orbit = circular_orbit(altitude = 1500e3, inclination_angle= (45*(np.p
 my_spacecraft = spacecraft(controller='PD', q=0, w=0,r=0,v=0)
 rw= reaction_wheel_system_basic(wheel_diameter=.049, wheel_height=.0175, wheel_mass= .197, max_torque = 8E-3)
 #define some important simulation parameters:
-t_step = 1 #seconds
+t_step = .01 #seconds
 t_end = 600 #simulation duration is 600 seconds
-time_space = np.linspace(0,t_step,t_end)
-
+time_space = np.arange(0,t_end,t_step)
+print(len(time_space))
 #set up data collection:
 N = len(time_space)
 quat_data = np.ones((N,4))
 rw_u_data = np.ones((N,3))
 rw_spin_speed_data = np.ones((N,3))
+vel_data = np.ones((N,3))
 
 #get DCM from inertial to nominal body attitude at a time t:
 def get_nominal_body(t):
@@ -94,9 +99,20 @@ for r in range(N): #no state estimation
         true_current_position_DCM = math_functions.q_to_dcm(current_quat)
         true_current_angular_velocity = initial_angular_velocity
         imu_bias = ADCS.create_IMU_bias(5.56E-4) #input bias repeatability as deg/s
+    #if r > 0 and np.linalg.norm(true_current_angular_velocity) > 100:  # threshold for "too big"
+        # print(f"Blowup at step {r}, t={r*t_step:.3f}s")
+        # print(f"  sun_b norm:              {np.linalg.norm(sun_sensor_reading)}")
+        # print(f"  mag_b norm:              {np.linalg.norm(mag_b)}")
+        # print(f"  cross(sun,mag) norm:     {np.linalg.norm(cross(sun_b, mag_b))}")
+        # print(f"  Rc norm:                 {np.linalg.norm(Rc)}")
+
+    
     #step 3: estimate positions and velocity
     sun_dir_inertial = earth_leo_orbit.sun_i
     sun_sensor_reading = ADCS.simulate_sunsensor(sun_dir_inertial, true_current_position_DCM, .2)
+    if math.isnan(sun_sensor_reading[1,0]):
+        print('breaking')
+        break
     mag_field_inertial = earth_leo_orbit.calculate_magfield(earth_leo_orbit.ECI_3d_position(t))
     magnetometer_reading = ADCS.simulate_magnetometer(mag_field_inertial, true_current_position_DCM)
     measured_current_position_DCM = ADCS.TRIAD_AD(mag_field_inertial, magnetometer_reading, sun_dir_inertial, sun_sensor_reading)
@@ -120,20 +136,33 @@ for r in range(N): #no state estimation
     rw.u = imperfect_u
     wheel_accel = rw.calculate_wheel_acceleration(angular_acceleration, rw.principal_moments())
     rw.spin_speed = rw.spin_speed + wheel_accel * t_step
-    
+
+
     #step 7: propagate  the angular velocity using the angular acceleration
     true_future_angular_velocity = true_current_angular_velocity + angular_acceleration * t_step
 
     #step 8: propagate the attitude using the angular velocity
+
     quat_dot = dynamics.kinematic_diffeq_quaternion(current_quat, true_current_angular_velocity)
     future_quat = (current_quat.reshape((-1,1)) + quat_dot * t_step).flatten()
     future_quat = future_quat/np.linalg.norm(future_quat)
-    print('future quat', future_quat)
     
     #step 9: update data
     quat_data[r,:] = current_quat
     rw_u_data[r,:] = imperfect_u.T
     rw_spin_speed_data[r,:] = (rw.spin_speed).T
+    vel_data[r,:] = (true_current_angular_velocity).T
+    
+    #test log:
+    print('current quat:', current_quat)
+    print('true_current_position_DCM', true_current_position_DCM)
+    print('true current angular velocity:', true_current_angular_velocity)
+    print('quat_dot', quat_dot)
+    print('wheel u:', rw.u )
+    print('true current angular acceleration:', angular_acceleration)
+    print('future quat:', future_quat)
+    print('true future angular velocity:', true_future_angular_velocity)
+    
 
     #update variables for the next iteration of for loop
     current_quat = future_quat
@@ -144,10 +173,33 @@ for r in range(N): #no state estimation
 
 #give all the data arrays a time column for readability
 stackable_time = time_space.reshape(-1,1)
-quat_data = np.hstack(stackable_time, quat_data)
-rw_u_data = np.hstack(stackable_time, rw_u_data)
-rw_spin_speed_data = np.hstack(stackable_time, rw_spin_speed_data)
-    
-        
+quat_data = np.hstack([stackable_time, quat_data])
+rw_u_data = np.hstack([stackable_time, rw_u_data])
+rw_spin_speed_data = np.hstack([stackable_time, rw_spin_speed_data])
+vel_data = np.hstack([stackable_time, vel_data])
+
+animate(quat_data)
+
+
+
+
+
+# fig, axes = plt.subplots(3,1)
+# axes[0].plot(vel_data[:,0], vel_data[:,1])
+# axes[0].set_title('omega x')
+
+# axes[1].plot(vel_data[:,0], vel_data[:,2])
+# axes[1].set_title('omega y')
+
+# axes[2].plot(vel_data[:,0], vel_data[:,3])
+# axes[2].set_title('omega z')
+
+
+# for ax in axes.flatten():
+#     ax.set_xlabel('Time (s)')
+#     ax.grid(True)
+
+# plt.tight_layout()
+# plt.show()
 
 
