@@ -29,11 +29,11 @@ def animate(quat_data):
         vertices_i = np.zeros((8,3))
         for k in range(8):
             vertices_i[k,:] = (R.T @ vertices_b[k,:].reshape((-1,1))).flatten() 
-            ax.plot(vertices_i[k,0], vertices_i[k,1], vertices_i[k,2])
+            ax.scatter(vertices_i[k,0], vertices_i[k,1], vertices_i[k,2], c='red')
         
         
     
 
     # rotate box vertices by R and redraw
-    ani = animation.FuncAnimation(fig, draw, frames=24)
+    ani = animation.FuncAnimation(fig, draw, frames=len(quat_data))
     ani.save('sim.gif', writer='pillow')

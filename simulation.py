@@ -9,6 +9,8 @@ import math
 from functools import partial
 from visualization import animate
 
+
+
 #create the circular orbit
 earth_leo_orbit = circular_orbit(altitude = 1500e3, inclination_angle= (45*(np.pi / 180)),
                                   planet_radius = 6378e3, planet_mu = 3.986e14, B_0=3E-5 )
@@ -26,6 +28,10 @@ quat_data = np.ones((N,4))
 rw_u_data = np.ones((N,3))
 rw_spin_speed_data = np.ones((N,3))
 vel_data = np.ones((N,3))
+
+#clear previous test_log
+open('test_log.txt', 'w').close()
+
 
 #get DCM from inertial to nominal body attitude at a time t:
 def get_nominal_body(t):
@@ -89,7 +95,7 @@ initial_position_quat = math_functions.quaternion_multiply(random_rotation_quate
 #step 2: put the spacecraft in a random angular velocity at time = 0s
 initial_angular_velocity = np.array([[np.random.normal(0, (15 * np.pi/180))],[np.random.normal(0, (15 * np.pi/180))],[np.random.normal(0, (15 * np.pi/180))]])
 
-
+print('orbital w:', -earth_leo_orbit.w)
 for r in range(N): #no state estimation
     t = time_space[r]
     nominal_body_DCM = get_nominal_body(t)
@@ -118,9 +124,10 @@ for r in range(N): #no state estimation
     measured_current_position_DCM = ADCS.TRIAD_AD(mag_field_inertial, magnetometer_reading, sun_dir_inertial, sun_sensor_reading)
     measured_angular_velocity = ADCS.simulate_IMU(imu_bias, 6.33E-3,t_step, true_current_angular_velocity)
     #step 4: create control signal (a.k.a reaction wheel torques 'u') 
-    u = ADCS.PD_Control_RW(Kp=.2, Kd = .01, DCM_estimate=measured_current_position_DCM, DCM_nominal=nominal_body_DCM, 
+    u = ADCS.PD_Control_RW(Kp=1, Kd = 1, DCM_estimate=measured_current_position_DCM, DCM_nominal=nominal_body_DCM, 
                            ang_vel_estimate=measured_angular_velocity, ang_vel_nominal=nominal_ang_vel, RW=rw, I_s=my_spacecraft.I )
-    imperfect_u = ADCS.simulate_imperfect_RW(u, torque_error= .04E-3)
+    #imperfect_u = ADCS.simulate_imperfect_RW(u, torque_error= .04E-3)
+    imperfect_u = ADCS.simulate_imperfect_RW(u, torque_error= 0)
     #step 5: create disturbances
     disturbances = dynamics.disturbances(I=my_spacecraft.I, DCM_I2B=true_current_position_DCM, sc_dipole_moment= my_spacecraft.b, 
                               mu=earth_leo_orbit.planet_mu, ECI_position=earth_leo_orbit.ECI_3d_position(t), 
@@ -154,14 +161,17 @@ for r in range(N): #no state estimation
     vel_data[r,:] = (true_current_angular_velocity).T
     
     #test log:
-    print('current quat:', current_quat)
-    print('true_current_position_DCM', true_current_position_DCM)
-    print('true current angular velocity:', true_current_angular_velocity)
-    print('quat_dot', quat_dot)
-    print('wheel u:', rw.u )
-    print('true current angular acceleration:', angular_acceleration)
-    print('future quat:', future_quat)
-    print('true future angular velocity:', true_future_angular_velocity)
+    with open('test_log.txt', 'a') as f:
+        f.write(f't={t:.4f} \n')
+        f.write(f'current quat={current_quat} \n')
+       # f.write(f'true_current_position_DCM={true_current_position_DCM} \n')
+        f.write(f'true current angular velocity={true_current_angular_velocity} \n')
+        f.write(f'quat_dot={quat_dot} \n')
+        f.write(f'wheel u={rw.u} \n')
+        f.write(f'true current angular acceleration = {angular_acceleration} \n \n')
+
+    # print('future quat:', future_quat)
+    # print('true future angular velocity:', true_future_angular_velocity)
     
 
     #update variables for the next iteration of for loop
@@ -178,7 +188,7 @@ rw_u_data = np.hstack([stackable_time, rw_u_data])
 rw_spin_speed_data = np.hstack([stackable_time, rw_spin_speed_data])
 vel_data = np.hstack([stackable_time, vel_data])
 
-animate(quat_data)
+# animate(quat_data)
 
 
 
