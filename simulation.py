@@ -186,33 +186,71 @@ for r in range(N): #no state estimation
 
 #give all the data arrays a time column for readability
 stackable_time = time_space.reshape(-1,1)
-quat_data = np.hstack([stackable_time, quat_data])
-rw_u_data = np.hstack([stackable_time, rw_u_data])
-rw_spin_speed_data = np.hstack([stackable_time, rw_spin_speed_data])
-vel_data = np.hstack([stackable_time, vel_data])
+# quat_data = np.hstack([stackable_time, quat_data])
+# rw_u_data = np.hstack([stackable_time, rw_u_data])
+# rw_spin_speed_data = np.hstack([stackable_time, rw_spin_speed_data])
+# vel_data = np.hstack([stackable_time, vel_data])
+
 
 # animate(quat_data)
 
+#plot error:
+plt.plot(stackable_time, error_data, color='red')
+plt.xlim(0,t_end)
+plt.grid(True, alpha=.3)
+plt.xlabel('Time (s)')
+plt.ylabel('Error (radians)')
+plt.title('Error vs Time')
+
+
+#plot quaternion
+
+fig_quat, axes_quat = plt.subplots(4, 1, figsize=(10, 8), sharex=True)
+
+axes_quat[0].plot(stackable_time, quat_data[:,0], 'y')
+axes_quat[0].set_ylabel('q0')
+
+axes_quat[1].plot(stackable_time, quat_data[:,1], 'r')
+axes_quat[1].set_ylabel('q1')
+
+axes_quat[2].plot(stackable_time, quat_data[:,2], 'b')
+axes_quat[2].set_ylabel('q2')
+
+axes_quat[3].plot(stackable_time, quat_data[:,3], 'g')
+axes_quat[3].set_ylabel('q3')
+axes_quat[3].set_xlabel('Time (s)')
+
+plt.tight_layout()   # prevents labels overlapping
+
+
+#plot angular velocity
+fig_omega, axes_omega = plt.subplots(3,1)
+axes_omega[0].plot(stackable_time,vel_data[:,0])
+axes_omega[0].set_ylabel('omega x (rad/s)')
+
+axes_omega[1].plot(stackable_time, vel_data[:,1])
+axes_omega[1].set_ylabel('omega y (rad/s)')
+
+axes_omega[2].plot(stackable_time, vel_data[:,2])
+axes_omega[2].set_ylabel('omega z (rad/s)')
+axes_omega[2].set_xlabel('Time (s)')
 
 
 
+#plot reaction wheel torques
 
-# fig, axes = plt.subplots(3,1)
-# axes[0].plot(vel_data[:,0], vel_data[:,1])
-# axes[0].set_title('omega x')
+fig_rw, axes_rw = plt.subplots(3,1)
+axes_rw[0].plot(stackable_time,rw_u_data[:,0])
+axes_rw[0].set_ylabel('rw #1 torque (add units)')
 
-# axes[1].plot(vel_data[:,0], vel_data[:,2])
-# axes[1].set_title('omega y')
+axes_rw[1].plot(stackable_time, rw_u_data[:,1])
+axes_rw[1].set_ylabel('rw #2 torque')
 
-# axes[2].plot(vel_data[:,0], vel_data[:,3])
-# axes[2].set_title('omega z')
+axes_rw[2].plot(stackable_time, rw_u_data[:,2])
+axes_rw[2].set_ylabel('rw #3 torque')
+axes_rw[2].set_xlabel('Time (s)')
 
-
-# for ax in axes.flatten():
-#     ax.set_xlabel('Time (s)')
-#     ax.grid(True)
-
-# plt.tight_layout()
-# plt.show()
+plt.tight_layout()
+plt.show()
 
 
