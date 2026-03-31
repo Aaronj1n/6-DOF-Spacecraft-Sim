@@ -82,6 +82,7 @@ def PD_Control_RW(Kp, Kd, DCM_estimate, DCM_nominal, ang_vel_estimate, ang_vel_n
     Kd = Kd * np.eye(3)
     error_DCM = DCM_estimate @ DCM_nominal.T
     error_vector = 0.5 * np.array([[error_DCM[2, 1]-error_DCM[1,2]],[error_DCM[0,2]-error_DCM[2,0]], [error_DCM[1,0]-error_DCM[0,1]]])
+    error_magnitude = np.linalg.norm(error_vector)
     error_ang_vel = ang_vel_estimate - ang_vel_nominal
     error_vector_dot = -cross(ang_vel_estimate, error_vector) + error_ang_vel
     alpha = -Kd @ error_vector_dot - Kp @ error_vector #alpha represents the angular acceleration that the controller would like to enact
@@ -89,7 +90,7 @@ def PD_Control_RW(Kp, Kd, DCM_estimate, DCM_nominal, ang_vel_estimate, ang_vel_n
     I_RW = RW.calculate_I_RW(I_s, J_RW)
     hs_vector = RW.calculate_hs_vector(J_RW, ang_vel_estimate)
     u = RW.calculate_u(alpha, I_RW, ang_vel_estimate, hs_vector)
-    return u
+    return u, error_magnitude
     
 
 

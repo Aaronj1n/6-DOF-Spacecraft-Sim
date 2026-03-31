@@ -28,6 +28,7 @@ quat_data = np.ones((N,4))
 rw_u_data = np.ones((N,3))
 rw_spin_speed_data = np.ones((N,3))
 vel_data = np.ones((N,3))
+error_data = np.ones((N,1))
 
 #clear previous test_log
 open('test_log.txt', 'w').close()
@@ -124,7 +125,7 @@ for r in range(N): #no state estimation
     measured_current_position_DCM = ADCS.TRIAD_AD(mag_field_inertial, magnetometer_reading, sun_dir_inertial, sun_sensor_reading)
     measured_angular_velocity = ADCS.simulate_IMU(imu_bias, 6.33E-3,t_step, true_current_angular_velocity)
     #step 4: create control signal (a.k.a reaction wheel torques 'u') 
-    u = ADCS.PD_Control_RW(Kp=1, Kd = 1, DCM_estimate=measured_current_position_DCM, DCM_nominal=nominal_body_DCM, 
+    u, error_vector_magnitude = ADCS.PD_Control_RW(Kp=10, Kd = 10, DCM_estimate=measured_current_position_DCM, DCM_nominal=nominal_body_DCM, 
                            ang_vel_estimate=measured_angular_velocity, ang_vel_nominal=nominal_ang_vel, RW=rw, I_s=my_spacecraft.I )
     #imperfect_u = ADCS.simulate_imperfect_RW(u, torque_error= .04E-3)
     imperfect_u = ADCS.simulate_imperfect_RW(u, torque_error= 0)
@@ -159,6 +160,7 @@ for r in range(N): #no state estimation
     rw_u_data[r,:] = imperfect_u.T
     rw_spin_speed_data[r,:] = (rw.spin_speed).T
     vel_data[r,:] = (true_current_angular_velocity).T
+    error_data[r,:] = error_vector_magnitude
     
     #test log:
     with open('test_log.txt', 'a') as f:
@@ -168,7 +170,8 @@ for r in range(N): #no state estimation
         f.write(f'true current angular velocity={true_current_angular_velocity} \n')
         f.write(f'quat_dot={quat_dot} \n')
         f.write(f'wheel u={rw.u} \n')
-        f.write(f'true current angular acceleration = {angular_acceleration} \n \n')
+        f.write(f'true current angular acceleration = {angular_acceleration} \n')
+        f.write(f'Error mag: {error_vector_magnitude}\n\n')
 
     # print('future quat:', future_quat)
     # print('true future angular velocity:', true_future_angular_velocity)
