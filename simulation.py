@@ -16,7 +16,7 @@ earth_leo_orbit = circular_orbit(altitude = 1500e3, inclination_angle= (45*(np.p
                                   planet_radius = 6378e3, planet_mu = 3.986e14, B_0=3E-5 )
 #create the spacecraft 
 my_spacecraft = spacecraft(controller='PD', q=0, w=0,r=0,v=0)
-rw= reaction_wheel_system_basic(wheel_diameter=.049, wheel_height=.0175, wheel_mass= .197, max_torque = 8E-3)
+rw= reaction_wheel_system_basic(wheel_diameter=.049, wheel_height=.0175, wheel_mass= .197, max_torque = 8E-3, max_ang_momentum= 50E-3, max_spin_speed=5000*.10472)
 #define some important simulation parameters:
 t_step = .01 #seconds
 t_end = 600 #simulation duration is 600 seconds
@@ -126,9 +126,9 @@ for r in range(N): #no state estimation
     measured_angular_velocity = ADCS.simulate_IMU(imu_bias, 6.33E-3,t_step, true_current_angular_velocity)
     #step 4: create control signal (a.k.a reaction wheel torques 'u') 
     u, error_vector_magnitude = ADCS.PD_Control_RW(Kp=10, Kd = 10, DCM_estimate=measured_current_position_DCM, DCM_nominal=nominal_body_DCM, 
-                           ang_vel_estimate=measured_angular_velocity, ang_vel_nominal=nominal_ang_vel, RW=rw, I_s=my_spacecraft.I )
+                           ang_vel_estimate=measured_angular_velocity, ang_vel_nominal=nominal_ang_vel, RW=rw, I_s=my_spacecraft.I,)
     #imperfect_u = ADCS.simulate_imperfect_RW(u, torque_error= .04E-3)
-    imperfect_u = ADCS.simulate_imperfect_RW(u, torque_error= 0)
+    imperfect_u = ADCS.simulate_imperfect_RW(u, torque_error= 8E-5)
     #step 5: create disturbances
     disturbances = dynamics.disturbances(I=my_spacecraft.I, DCM_I2B=true_current_position_DCM, sc_dipole_moment= my_spacecraft.b, 
                               mu=earth_leo_orbit.planet_mu, ECI_position=earth_leo_orbit.ECI_3d_position(t), 
@@ -241,7 +241,7 @@ axes_omega[2].set_xlabel('Time (s)')
 
 fig_rw, axes_rw = plt.subplots(3,1)
 axes_rw[0].plot(stackable_time,rw_u_data[:,0])
-axes_rw[0].set_ylabel('rw #1 torque (add units)')
+axes_rw[0].set_ylabel('rw #1 torque (N * m)')
 
 axes_rw[1].plot(stackable_time, rw_u_data[:,1])
 axes_rw[1].set_ylabel('rw #2 torque')

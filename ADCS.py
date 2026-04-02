@@ -89,7 +89,7 @@ def PD_Control_RW(Kp, Kd, DCM_estimate, DCM_nominal, ang_vel_estimate, ang_vel_n
     J_RW = RW.principal_moments()
     I_RW = RW.calculate_I_RW(I_s, J_RW)
     hs_vector = RW.calculate_hs_vector(J_RW, ang_vel_estimate)
-    u = RW.calculate_u(alpha, I_RW, ang_vel_estimate, hs_vector)
+    u = RW.calculate_u(alpha, I_RW, ang_vel_estimate, hs_vector, J_RW)
     return u, error_magnitude
     
 

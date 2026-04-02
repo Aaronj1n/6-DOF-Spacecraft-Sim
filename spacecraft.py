@@ -17,7 +17,7 @@ class spacecraft:
 
 class reaction_wheel_system_basic:    #basic meaning there are three RW's, each aligned with a 
                                       #...body principal axis
-    def __init__(self, wheel_diameter, wheel_height, wheel_mass, max_torque, spin_speed = np.array([[0],[0],[0]]),
+    def __init__(self, wheel_diameter, wheel_height, wheel_mass, max_torque, max_ang_momentum, max_spin_speed, spin_speed = np.array([[0],[0],[0]]),
                   u= np.array([[0],[0],[0]]), hs = np.array([[0],[0],[0]])
                   ):
         self.wheel_diameter = wheel_diameter
@@ -25,6 +25,8 @@ class reaction_wheel_system_basic:    #basic meaning there are three RW's, each 
         self.wheel_height = wheel_height
         self.wheel_mass = wheel_mass
         self.max_torque = max_torque
+        self.max_ang_momentum = max_ang_momentum
+        self.max_spin_speed = max_spin_speed
         self.spin_speed = spin_speed
         self.u = u
         self.hs= hs
@@ -85,16 +87,35 @@ class reaction_wheel_system_basic:    #basic meaning there are three RW's, each 
         w_s3 = dot(angular_velocity_body, s3) #component of spacecraft angular velocity in the RW #3 spin direction
         h_vector = J_s * (np.array([[w_s1],[w_s2], [w_s3]]) + self.spin_speed)
         return h_vector
-    def calculate_u(self, desired_ang_accel, I_RW, estimated_angular_vel, hs_vector):
+    
+    def calculate_u(self, desired_ang_accel, I_RW, estimated_angular_vel, hs_vector, J_RW):
         desired_u =  cross(-estimated_angular_vel, (I_RW @ estimated_angular_vel)) - cross(estimated_angular_vel, hs_vector) - (I_RW @ desired_ang_accel)
         empty_list = []
-        
-        
-        for u_c in desired_u:
-            if u_c.item() < self.max_torque:
-                u_c = u_c.item()
+        #check that max angular momentum not exceeded for wheels
+        J_s = J_RW[2,2]
+        for k in range(3):
+            spin_speed = self.spin_speed[k,0]
+            # L = J_s * spin_speed
+            # if np.abs(L) >= self.max_ang_momentum:
+            if spin_speed >= self.max_spin_speed:
+                u_c = 0
             else:
-                u_c = self.max_torque
+                u_c = desired_u[k]
+                if np.abs(u_c.item()) <= self.max_torque:
+                    u_c = u_c.item()
+                else:
+                    if u_c.item() > 0:
+                        u_c = self.max_torque
+                    elif u_c.item() < 0:
+                        u_c = -self.max_torque 
+                # if u_c.item() < self.max_torque and u_c.item() >= 0:
+                #     u_c = u_c.item()
+                # elif u_c.item() > -self.max_torque and u_c.item() < 0:
+                #     u_c = u_c.item()
+                # elif u_c.item() >= self.max_torque:
+                #     u_c = self.max_torque
+                # elif u_c.item() <=  -self.max_torque:
+                #     u_c = -self.max_torque
             empty_list.append(u_c)
         u = np.array(empty_list).reshape(-1,1)
         return u 
