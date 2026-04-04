@@ -6,6 +6,9 @@ Runs on python, needs: numpy, scipy, matplotlib, and plotly. \
 Go to this directory and type in the terminal:\
 `python3 -m pip install -r requirements.txt`
 
+## How to use:
+run the file run.py
+Controller gains are pre-selected but tunable.
 
 ## How I made this:
 ### Astrodynamics of Low Earth Orbit
